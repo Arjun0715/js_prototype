@@ -76,13 +76,13 @@ select{width:100%;background:var(--panel-alt);color:var(--text);border:1px solid
       <h2>Inputs</h2>
 
       <div class="field">
-        <div class="field-label"><span>Scrap share of input mix</span><b id="scrapVal">60%</b></div>
+        <div class="field-label"><span>Scrap Percentage</span><b id="scrapVal">60%</b></div>
         <input type="range" id="scrap" min="0" max="100" value="60" />
         <div class="hint">Remaining share is virgin input (iron ore / ferro-alloys via BF-BOF route).</div>
       </div>
 
       <div class="field">
-        <div class="field-label"><span>Max practical scrap availability</span><b id="scrapCapVal">85%</b></div>
+        <div class="field-label"><span>Max Practical Scrap Availability</span><b id="scrapCapVal">85%</b></div>
         <input type="range" id="scrapCap" min="20" max="100" value="85" />
         <div class="hint">Caps how far "Optimize" can push scrap share — reflects real scrap supply / grade limits.</div>
       </div>
@@ -90,10 +90,10 @@ select{width:100%;background:var(--panel-alt);color:var(--text);border:1px solid
       <div class="field">
         <div class="field-label"><span>Electricity source (EAF melting)</span></div>
         <select id="energySource">
-          <option value="0.90">Coal-heavy captive grid — 0.90 tCO₂/MWh</option>
-          <option value="0.72" selected>National grid average (India) — 0.72 tCO₂/MWh</option>
-          <option value="0.45">Natural gas captive plant — 0.45 tCO₂/MWh</option>
-          <option value="0.05">Renewable PPA (solar/wind/hydro) — 0.05 tCO₂/MWh</option>
+          <option value="0.90">Coal-heavy captive grid — 0.90 KgCO₂/MWh</option>
+          <option value="0.72" selected>National grid average (India) — 0.72 KgCO₂/MWh</option>
+          <option value="0.45">Natural gas captive plant — 0.45 KgCO₂/MWh</option>
+          <option value="0.05">Renewable PPA (solar/wind/hydro) — 0.05 KgCO₂/MWh</option>
         </select>
       </div>
 
@@ -109,12 +109,12 @@ select{width:100%;background:var(--panel-alt);color:var(--text);border:1px solid
 
     <!-- Results -->
     <div class="panel">
-      <h2>Emissions breakdown <span class="n">tCO₂ per tonne of crude steel</span></h2>
+      <h2>Emissions breakdown <span class="n">KgCO₂ per tonne of crude steel</span></h2>
 
       <div class="kpi-row">
         <div class="kpi big">
           <div class="label">Total estimated emissions</div>
-          <div class="value" id="totalVal">— <small>tCO₂/t</small></div>
+          <div class="value" id="totalVal">— <small>KgCO₂/t</small></div>
         </div>
         <div class="kpi">
           <div class="label">vs. conventional virgin-route baseline</div>
@@ -136,7 +136,7 @@ select{width:100%;background:var(--panel-alt);color:var(--text);border:1px solid
 
       <h2 style="margin-top:1.5rem;">Scenario comparison</h2>
       <table class="bench-table">
-        <thead><tr><th>Scenario</th><th class="num">tCO₂/t</th><th class="num">vs baseline</th></tr></thead>
+        <thead><tr><th>Scenario</th><th class="num">KgCO₂/t</th><th class="num">vs baseline</th></tr></thead>
         <tbody id="benchBody"></tbody>
       </table>
 
@@ -152,7 +152,7 @@ select{width:100%;background:var(--panel-alt);color:var(--text);border:1px solid
       <p id="narrative" style="font-size:0.88rem;color:var(--text-soft);line-height:1.55;"></p>
       <h2 style="margin-top:1.25rem;">Net Zero 2050 trajectory</h2>
       <p style="font-size:0.82rem;color:var(--text-soft);line-height:1.55;">
-        A straight-line path from today's conventional baseline (~2.25 tCO₂/t) to
+        A straight-line path from today's conventional baseline (~2.25 KgCO₂/t) to
         net zero by 2050 implies roughly <b id="trajRate" style="color:var(--text);font-family:var(--font-mono);"></b>
         of intensity reduction per year. Your current scenario represents
         <b id="trajPct" style="color:var(--text);font-family:var(--font-mono);"></b> of that full journey.
@@ -163,9 +163,9 @@ select{width:100%;background:var(--panel-alt);color:var(--text);border:1px solid
 
 <script>
 const F = {
-  VIRGIN: 2.1,        // tCO2/t — virgin/BF-BOF route process emissions (fuel-based)
-  SCRAP_PROCESS: 0.15,// tCO2/t — EAF non-electricity process emissions
-  AOD: 0.15           // tCO2/t — flat AOD refining emissions (stainless-specific)
+  VIRGIN: 2.1,        // KgCO2/t — virgin/BF-BOF route process emissions (fuel-based)
+  SCRAP_PROCESS: 0.15,// KgCO2/t — EAF non-electricity process emissions
+  AOD: 0.15           // KgCO2/t — flat AOD refining emissions (stainless-specific)
 };
 const BASELINE = 1*F.VIRGIN + F.AOD;                 // 100% virgin, conventional route
 const BEST_CASE = F.SCRAP_PROCESS + 0.5*0.05 + F.AOD; // 100% scrap, renewable, default intensity
@@ -203,7 +203,7 @@ function render(){
   if (scrapPct > scrapCap){ els.scrap.value = scrapCap; return render(); }
 
   const r = calc(scrapPct, gridFactor, energyIntensity);
-  document.getElementById('totalVal').innerHTML = r.total.toFixed(3)+' <small>tCO₂/t</small>';
+  document.getElementById('totalVal').innerHTML = r.total.toFixed(3)+' <small>KgCO₂/t</small>';
 
   const deltaBase = ((r.total-BASELINE)/BASELINE*100);
   const dEl = document.getElementById('deltaVal');
@@ -243,9 +243,9 @@ function render(){
     </tr>`).join('');
 
   document.getElementById('assumptionsText').innerHTML = `
-    Virgin/BF-BOF process factor: <b>${F.VIRGIN} tCO₂/t</b> (fuel-based, coke/coal — independent of electricity source).<br>
-    Scrap-EAF process factor (non-electricity): <b>${F.SCRAP_PROCESS} tCO₂/t</b> (electrodes, fluxes).<br>
-    AOD refining (stainless decarburization, applied to all routes): <b>${F.AOD} tCO₂/t</b>.<br>
+    Virgin/BF-BOF process factor: <b>${F.VIRGIN} KgCO₂/t</b> (fuel-based, coke/coal — independent of electricity source).<br>
+    Scrap-EAF process factor (non-electricity): <b>${F.SCRAP_PROCESS} KgCO₂/t</b> (electrodes, fluxes).<br>
+    AOD refining (stainless decarburization, applied to all routes): <b>${F.AOD} KgCO₂/t</b>.<br>
     Electricity emissions = scrap share × energy intensity × grid factor.<br>
     Figures are illustrative, based on published industry ranges (WorldSteel, IEA, CEA grid data) — not Jindal Stainless plant-specific data.
   `;
@@ -262,7 +262,7 @@ function render(){
   const totalReductionNeeded = BASELINE; // to reach ~0 by 2050
   const years = 2050-2026;
   const annualRate = totalReductionNeeded/years;
-  document.getElementById('trajRate').textContent = annualRate.toFixed(3)+' tCO₂/t per year';
+  document.getElementById('trajRate').textContent = annualRate.toFixed(3)+' KgCO₂/t per year';
   const progress = Math.max(0, Math.min(100, (BASELINE-r.total)/BASELINE*100));
   document.getElementById('trajPct').textContent = progress.toFixed(0)+'%';
 }
