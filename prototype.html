@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Carbon & Energy Dashboard — Steelmaking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0f1613; --panel:#161f1b; --panel-alt:#1c2621; --line:#2a3630;
+  --text:#eef3ef; --text-soft:#9fb0a7;
+  --steel:#5fa8d3; --amber:#e8a13a; --leaf:#5fbf7f; --red:#e2634f;
+  --font-display:"Space Grotesk",sans-serif; --font-mono:"IBM Plex Mono",monospace; --font-body:"Inter",sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);}
+.wrap{max-width:1280px;margin:0 auto;padding:1.75rem 1.75rem 3rem;}
+.topbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.75rem;flex-wrap:wrap;gap:0.6rem;}
+.topbar h1{font-family:var(--font-display);font-size:1.5rem;margin:0;font-weight:600;}
+.topbar .tag{color:var(--text-soft);font-size:0.85rem;font-family:var(--font-mono);}
+.grid{display:grid;grid-template-columns:340px 1fr 320px;gap:1.25rem;align-items:start;}
+@media (max-width:1100px){.grid{grid-template-columns:1fr;}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.25rem;}
+.panel h2{font-family:var(--font-display);font-size:1rem;margin:0 0 1rem;font-weight:600;letter-spacing:0.01em;}
+.panel h2 .n{color:var(--text-soft);font-family:var(--font-mono);font-weight:400;font-size:0.8rem;}
+
+.field{margin-bottom:1.1rem;}
+.field-label{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-soft);margin-bottom:0.4rem;}
+.field-label b{color:var(--text);font-family:var(--font-mono);}
+input[type=range]{width:100%;accent-color:var(--amber);}
+select{width:100%;background:var(--panel-alt);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:0.5rem;font-family:var(--font-body);}
+.hint{font-size:0.72rem;color:var(--text-soft);margin-top:0.3rem;}
+
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin-bottom:1.25rem;}
+.kpi{background:var(--panel-alt);border:1px solid var(--line);border-radius:8px;padding:0.9rem;}
+.kpi .label{font-size:0.72rem;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.04em;}
+.kpi .value{font-family:var(--font-mono);font-size:1.6rem;font-weight:600;margin-top:0.2rem;}
+.kpi .value small{font-size:0.9rem;color:var(--text-soft);font-weight:400;}
+.kpi.big{grid-column:1/-1;}
+.kpi.big .value{font-size:2.4rem;color:var(--amber);}
+.delta-good{color:var(--leaf);}
+.delta-bad{color:var(--red);}
+
+.bar-stack{display:flex;height:2.6rem;border-radius:6px;overflow:hidden;margin:0.75rem 0;border:1px solid var(--line);}
+.bar-seg{display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.7rem;color:#0f1613;font-weight:600;}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:0.75rem;color:var(--text-soft);margin-bottom:1.25rem;}
+.legend span{display:inline-flex;align-items:center;gap:0.35rem;}
+.swatch{width:0.7rem;height:0.7rem;border-radius:2px;display:inline-block;}
+
+.bench-table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+.bench-table th, .bench-table td{text-align:left;padding:0.5rem 0.4rem;border-bottom:1px solid var(--line);}
+.bench-table th{color:var(--text-soft);font-weight:500;font-size:0.75rem;text-transform:uppercase;}
+.bench-table td.num{font-family:var(--font-mono);text-align:right;}
+.bench-table tr.current{background:rgba(232,161,58,0.08);}
+.bench-table tr.current td:first-child{color:var(--amber);font-weight:600;}
+
+.btn{background:var(--amber);color:#171006;border:none;border-radius:6px;padding:0.7rem 1rem;font-weight:600;cursor:pointer;width:100%;font-family:var(--font-body);}
+.btn:hover{filter:brightness(1.08);}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+
+.assumptions{font-size:0.75rem;color:var(--text-soft);line-height:1.6;}
+.assumptions summary{cursor:pointer;color:var(--text);font-family:var(--font-mono);font-size:0.8rem;margin-bottom:0.5rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>Carbon &amp; Energy Calculator — Steelmaking</h1>
+    <span class="tag">DASHBOARD PROTOTYPE · illustrative model, not verified plant data</span>
+  </div>
+
+  <div class="grid">
+    <!-- Inputs -->
+    <div class="panel">
+      <h2>Inputs</h2>
+
+      <div class="field">
+        <div class="field-label"><span>Scrap share of input mix</span><b id="scrapVal">60%</b></div>
+        <input type="range" id="scrap" min="0" max="100" value="60" />
+        <div class="hint">Remaining share is virgin input (iron ore / ferro-alloys via BF-BOF route).</div>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>Max practical scrap availability</span><b id="scrapCapVal">85%</b></div>
+        <input type="range" id="scrapCap" min="20" max="100" value="85" />
+        <div class="hint">Caps how far "Optimize" can push scrap share — reflects real scrap supply / grade limits.</div>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>Electricity source (EAF melting)</span></div>
+        <select id="energySource">
+          <option value="0.90">Coal-heavy captive grid — 0.90 tCO₂/MWh</option>
+          <option value="0.72" selected>National grid average (India) — 0.72 tCO₂/MWh</option>
+          <option value="0.45">Natural gas captive plant — 0.45 tCO₂/MWh</option>
+          <option value="0.05">Renewable PPA (solar/wind/hydro) — 0.05 tCO₂/MWh</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>EAF energy intensity</span><b id="energyIntVal">0.50 MWh/t</b></div>
+        <input type="range" id="energyInt" min="40" max="65" value="50" />
+        <div class="hint">Electricity used per tonne melted — lower is a more efficient furnace/operation.</div>
+      </div>
+
+      <button class="btn" id="optimizeBtn">Optimize within constraints</button>
+      <button class="btn btn-ghost" style="margin-top:0.6rem;" id="resetBtn">Reset to baseline</button>
+    </div>
+
+    <!-- Results -->
+    <div class="panel">
+      <h2>Emissions breakdown <span class="n">tCO₂ per tonne of crude steel</span></h2>
+
+      <div class="kpi-row">
+        <div class="kpi big">
+          <div class="label">Total estimated emissions</div>
+          <div class="value" id="totalVal">— <small>tCO₂/t</small></div>
+        </div>
+        <div class="kpi">
+          <div class="label">vs. conventional virgin-route baseline</div>
+          <div class="value" id="deltaVal">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">vs. best-practice scrap+renewable case</div>
+          <div class="value" id="deltaBestVal">—</div>
+        </div>
+      </div>
+
+      <div class="bar-stack" id="barStack"></div>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--steel)"></i>Virgin/BF-BOF process</span>
+        <span><i class="swatch" style="background:var(--leaf)"></i>Scrap-EAF process</span>
+        <span><i class="swatch" style="background:var(--amber)"></i>Electricity (melting)</span>
+        <span><i class="swatch" style="background:var(--red)"></i>AOD refining (fixed)</span>
+      </div>
+
+      <h2 style="margin-top:1.5rem;">Scenario comparison</h2>
+      <table class="bench-table">
+        <thead><tr><th>Scenario</th><th class="num">tCO₂/t</th><th class="num">vs baseline</th></tr></thead>
+        <tbody id="benchBody"></tbody>
+      </table>
+
+      <details class="assumptions" style="margin-top:1.25rem;">
+        <summary>Model assumptions (click to expand)</summary>
+        <div id="assumptionsText"></div>
+      </details>
+    </div>
+
+    <!-- Notes / narrative -->
+    <div class="panel">
+      <h2>What this means</h2>
+      <p id="narrative" style="font-size:0.88rem;color:var(--text-soft);line-height:1.55;"></p>
+      <h2 style="margin-top:1.25rem;">Net Zero 2050 trajectory</h2>
+      <p style="font-size:0.82rem;color:var(--text-soft);line-height:1.55;">
+        A straight-line path from today's conventional baseline (~2.25 tCO₂/t) to
+        net zero by 2050 implies roughly <b id="trajRate" style="color:var(--text);font-family:var(--font-mono);"></b>
+        of intensity reduction per year. Your current scenario represents
+        <b id="trajPct" style="color:var(--text);font-family:var(--font-mono);"></b> of that full journey.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+const F = {
+  VIRGIN: 2.1,        // tCO2/t — virgin/BF-BOF route process emissions (fuel-based)
+  SCRAP_PROCESS: 0.15,// tCO2/t — EAF non-electricity process emissions
+  AOD: 0.15           // tCO2/t — flat AOD refining emissions (stainless-specific)
+};
+const BASELINE = 1*F.VIRGIN + F.AOD;                 // 100% virgin, conventional route
+const BEST_CASE = F.SCRAP_PROCESS + 0.5*0.05 + F.AOD; // 100% scrap, renewable, default intensity
+
+const els = {
+  scrap: document.getElementById('scrap'),
+  scrapVal: document.getElementById('scrapVal'),
+  scrapCap: document.getElementById('scrapCap'),
+  scrapCapVal: document.getElementById('scrapCapVal'),
+  energySource: document.getElementById('energySource'),
+  energyInt: document.getElementById('energyInt'),
+  energyIntVal: document.getElementById('energyIntVal'),
+};
+
+function calc(scrapPct, gridFactor, energyIntensityMWh){
+  const scrap = scrapPct/100, virgin = 1-scrap;
+  const virginProcess = virgin*F.VIRGIN;
+  const scrapProcess = scrap*F.SCRAP_PROCESS;
+  const electricity = scrap*energyIntensityMWh*gridFactor;
+  const aod = F.AOD;
+  const total = virginProcess+scrapProcess+electricity+aod;
+  return {virginProcess, scrapProcess, electricity, aod, total};
+}
+
+function render(){
+  const scrapPct = Number(els.scrap.value);
+  const scrapCap = Number(els.scrapCap.value);
+  const gridFactor = Number(els.energySource.value);
+  const energyIntensity = Number(els.energyInt.value)/100;
+
+  els.scrapVal.textContent = scrapPct+'%';
+  els.scrapCapVal.textContent = scrapCap+'%';
+  els.energyIntVal.textContent = energyIntensity.toFixed(2)+' MWh/t';
+
+  if (scrapPct > scrapCap){ els.scrap.value = scrapCap; return render(); }
+
+  const r = calc(scrapPct, gridFactor, energyIntensity);
+  document.getElementById('totalVal').innerHTML = r.total.toFixed(3)+' <small>tCO₂/t</small>';
+
+  const deltaBase = ((r.total-BASELINE)/BASELINE*100);
+  const dEl = document.getElementById('deltaVal');
+  dEl.textContent = (deltaBase<=0?'':'+')+deltaBase.toFixed(1)+'%';
+  dEl.className = 'value '+(deltaBase<0?'delta-good':'delta-bad');
+
+  const deltaBest = ((r.total-BEST_CASE)/BEST_CASE*100);
+  const dbEl = document.getElementById('deltaBestVal');
+  dbEl.textContent = (deltaBest<=0?'':'+')+deltaBest.toFixed(1)+'%';
+  dbEl.className = 'value '+(deltaBest<=5?'delta-good':'delta-bad');
+
+  // Bar stack
+  const stack = document.getElementById('barStack');
+  const segs = [
+    {v:r.virginProcess, c:'var(--steel)', label:'Virgin'},
+    {v:r.scrapProcess, c:'var(--leaf)', label:'Scrap'},
+    {v:r.electricity, c:'var(--amber)', label:'Elec'},
+    {v:r.aod, c:'var(--red)', label:'AOD'},
+  ];
+  stack.innerHTML = segs.map(s => {
+    const pct = (s.v/r.total*100).toFixed(0);
+    return pct>4 ? `<div class="bar-seg" style="width:${pct}%;background:${s.c}">${pct}%</div>` : `<div class="bar-seg" style="width:${pct}%;background:${s.c}"></div>`;
+  }).join('');
+
+  // Scenario table
+  const scenarios = [
+    {name:'Conventional (100% virgin)', total: BASELINE},
+    {name:'Your scenario', total: r.total, current:true},
+    {name:'100% scrap, current grid', total: calc(100, gridFactor, energyIntensity).total},
+    {name:'Best practice (scrap + renewables)', total: BEST_CASE},
+  ];
+  document.getElementById('benchBody').innerHTML = scenarios.map(s => `
+    <tr class="${s.current?'current':''}">
+      <td>${s.name}</td>
+      <td class="num">${s.total.toFixed(3)}</td>
+      <td class="num">${((s.total-BASELINE)/BASELINE*100).toFixed(1)}%</td>
+    </tr>`).join('');
+
+  document.getElementById('assumptionsText').innerHTML = `
+    Virgin/BF-BOF process factor: <b>${F.VIRGIN} tCO₂/t</b> (fuel-based, coke/coal — independent of electricity source).<br>
+    Scrap-EAF process factor (non-electricity): <b>${F.SCRAP_PROCESS} tCO₂/t</b> (electrodes, fluxes).<br>
+    AOD refining (stainless decarburization, applied to all routes): <b>${F.AOD} tCO₂/t</b>.<br>
+    Electricity emissions = scrap share × energy intensity × grid factor.<br>
+    Figures are illustrative, based on published industry ranges (WorldSteel, IEA, CEA grid data) — not Jindal Stainless plant-specific data.
+  `;
+
+  const narrative = document.getElementById('narrative');
+  if (deltaBase < -50) {
+    narrative.textContent = `This mix cuts emissions intensity by over half versus the conventional virgin route — driven mainly by ${scrapPct}% scrap share` + (gridFactor<0.5 ? ' and a cleaner electricity source.' : '.');
+  } else if (deltaBase < -10) {
+    narrative.textContent = `A meaningful reduction versus baseline. Raising scrap share further, or switching to a cleaner grid source, would move this closer to best-practice.`;
+  } else {
+    narrative.textContent = `This scenario sits close to the conventional baseline. Increasing scrap share and/or moving to lower-carbon electricity are the two biggest levers available.`;
+  }
+
+  const totalReductionNeeded = BASELINE; // to reach ~0 by 2050
+  const years = 2050-2026;
+  const annualRate = totalReductionNeeded/years;
+  document.getElementById('trajRate').textContent = annualRate.toFixed(3)+' tCO₂/t per year';
+  const progress = Math.max(0, Math.min(100, (BASELINE-r.total)/BASELINE*100));
+  document.getElementById('trajPct').textContent = progress.toFixed(0)+'%';
+}
+
+function optimize(){
+  els.scrap.value = els.scrapCap.value;
+  els.energySource.value = "0.05";
+  els.energyInt.value = 40;
+  render();
+}
+function resetBaseline(){
+  els.scrap.value = 60; els.scrapCap.value = 85; els.energySource.value = "0.72"; els.energyInt.value = 50;
+  render();
+}
+
+[els.scrap, els.scrapCap, els.energySource, els.energyInt].forEach(el => el.addEventListener('input', render));
+document.getElementById('optimizeBtn').addEventListener('click', optimize);
+document.getElementById('resetBtn').addEventListener('click', resetBaseline);
+render();
+</script>
+</body>
+</html>
